@@ -1,0 +1,4 @@
+---
+- import_playbook: playbooks/install-prereq.yaml
+- import_playbook: playbooks/configure-master.yaml
+- import_playbook: playbooks/configure-workers.yaml

@@ -1,0 +1,44 @@
+---
+- hosts: master
+  become: yes
+  vars_files:
+  - env_variables
+
+  tasks:
+
+    - name: Creating a configuration file for kubelet
+      file:
+        path: "/etc/default/kubelet"
+        state: "touch"
+
+    - name:
+      blockinfile:
+        path: "/etc/default/kubelet"
+        block: |
+              KUBELET_EXTRA_ARGS="--cgroup-driver=cgroupfs"
+
+    - name: Reload configuration kubelet
+      shell: "sudo systemctl daemon-reload && sudo systemctl restart kubelet"
+
+    - name: Copying daemon file to master node
+      copy: src=daemon dest=/etc/docker/daemon.json
+
+    - name: restart service docker
+      shell: "sudo systemctl daemon-reload && sudo systemctl restart docker"
+
+    - name: set Enviroment
+      command: sudo sed -i '3 a Environment="KUBELET_EXTRA_ARGS=--fail-swap-on=false"' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+    - name: restart service kubelet
+      shell: "sudo systemctl daemon-reload && sudo systemctl restart kubelet"
+
+    - name: kluster init
+      shell: sudo kubeadm init --control-plane-endpoint=kube-adm --ignore-preflight-errors=NumCPU
+
+    - name: Get the join command to be used by the worker
+      shell: kubeadm token create  --print-join-command
+      register: kube_join_command
+
+
+    - name: Storing Logs and Generated token for future purpose.
+      local_action: copy content="{{ kube_join_command.stdout_lines[0] }}" dest={{ token_file }}

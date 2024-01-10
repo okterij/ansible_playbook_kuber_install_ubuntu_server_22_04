@@ -1,0 +1,1 @@
+kubeadm join kube-adm:6443 --token gtd12i.qfqjcr1y5b7a03mi --discovery-token-ca-cert-hash sha256:e2253c7314284ce6bdcc19939be650ad28ca1dafa51a0005c141edcccfe81179 
